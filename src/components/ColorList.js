@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosWithAuth from '../helpers/axiosWithAuth';
+import EditMenu from './EditMenu';
 
 const initialColor = {
   color: "",
   code: { hex: "" }
 };
 
-const ColorList = ({ colors, updateColors }) => {
+const ColorList = ({ colors, updateColors, getColors }) => {
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
 
@@ -14,13 +15,37 @@ const ColorList = ({ colors, updateColors }) => {
     setEditing(true);
     setColorToEdit(color);
   };
-
+//1. Complete the saveEdit functions by making a put request for saving colors. (Think about where will you get the id from...)
   const saveEdit = e => {
     e.preventDefault();
-
+    axiosWithAuth()
+    .put(`http://localhost:5000/api/colors/${colorToEdit.id}`, colorToEdit)
+    .then(res => {
+      console.log('PUT RESPONSE: ', res.data)
+      setEditing(false)
+      updateColors(colors.map(color => {
+        if(color.id === res.data.id) {
+          return res.data
+        } else {
+          return color
+        }
+      }))
+    })
+    .catch(err => {
+      console.log('PUT ERROR: ', err)
+    })
   };
-
-  const deleteColor = color => {
+//2. Complete the deleteColor functions by making a delete request for deleting colors.
+  const deleteColor = colorToEdit => {
+    axiosWithAuth()
+    .delete(`http://localhost:5000/api/colors/${colorToEdit.id}`)
+    .then(res => {
+      console.log(res)
+      getColors()
+    })
+    .catch(err => {
+      console.log(err)
+    })
   };
 
   return (
@@ -55,5 +80,4 @@ const ColorList = ({ colors, updateColors }) => {
 export default ColorList;
 
 //Task List:
-//1. Complete the saveEdit functions by making a put request for saving colors. (Think about where will you get the id from...)
-//2. Complete the deleteColor functions by making a delete request for deleting colors.
+
